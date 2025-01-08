@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test z ZK</title>
+    <link rel="stylesheet" href="zk.css">
+</head>
+<body>
+    <h1>Test z Zapisu konstrukcji</h1>
+
+    <form id="quizForm"></form>
+
+    <div class="nav-buttons">
+        <button type="button" id="backButton" style="display:none;" onclick="showQuestion(currentQuestion - 1)">Powróć</button>
+        <button type="button" id="nextButton" style="display:none;" onclick="showQuestion(currentQuestion + 1)">Kolejne zadanie</button>
+        <button type="button" id="submitButton" style="display:none;" onclick="submitQuiz()">Zatwierdź odpowiedzi</button>
+    </div>
+
+    <div class="final-result" id="finalResult"></div>
+
+    <script>
+        let score = 0;
+        const totalQuestions = 30;
+        let currentQuestion = 0;
+        let selectedQuestions = [];
+
+        const baseQuestions = [
+        {
+        q: 'Który z poniższych rodzajów przekrojów polega na przecięciu przedmiotu jedną płaszczyzną i usunięciu części przed płaszczyzną cięcia?',
+        a: 'a',
+        options: ['Przekrój pełny', 'Przekrój miejscowy', 'Przekrój stopniowy', 'Przekrój półpełny']
+        },
+        {
+        q: 'W rzutach prostokątnych, rzut z przodu nazywany jest również:',
+        a: 'b',
+        options: ['Rzutem pionowym', 'Rzutem głównym', 'Rzutem bocznym', 'Rzutem poziomym']
+        },
+        {
+        q: 'Które z poniższych stwierdzeń dotyczących widoku bryły jest prawdziwe?',
+        a: 'c',
+        options: ['Widok bryły zawsze przedstawia obiekt w perspektywie', 'Widok bryły jest zbędny w rysunku technicznym', 'Widok bryły ułatwia zrozumienie kształtu przedmiotu', 'Widok bryły przedstawia tylko wewnętrzne elementy obiektu']
+        },
+        {
+        q: 'Symbol chropowatości powierzchni w rysunku technicznym oznacza:',
+        a: 'd',
+        options: ['Tolerancję wymiarów', 'Materiał wykonania', 'Metodę obróbki', 'Stan jakości powierzchni po obróbce']
+        },
+        {
+        q: 'Pasowanie luźne to takie, w którym:',
+        a: 'b',
+        options: ['Elementy są ciasno dopasowane', 'Między elementami występuje luz', 'Elementy są nierozłączne', 'Elementy są połączone na stałe']
+        },
+        {
+        q: 'Linie wymiarowe na rysunku technicznym powinny być:',
+        a: 'a',
+        options: ['Cienkie i ciągłe', 'Grube i kreskowane', 'Cienkie i punktowe', 'Grube i ciągłe']
+        },
+        {
+        q: 'Który rodzaj przekroju stosuje się do pokazania wewnętrznych szczegółów tylko na niewielkiej części obiektu?',
+        a: 'c',
+        options: ['Przekrój pełny', 'Przekrój stopniowy', 'Przekrój miejscowy', 'Przekrój obracany']
+        },
+        {
+        q: 'W tolerancjach wymiarów, odchyłka górna i dolna określają:',
+        a: 'd',
+        options: ['Wymiar nominalny', 'Średnicę otworu', 'Dokładność pomiaru', 'Dopuszczalne granice wymiaru']
+        },
+        {
+        q: 'Rzut prostokątny polega na:',
+        a: 'b',
+        options: ['Rzutowaniu pod kątem 45 stopni', 'Rzutowaniu prostopadłym na płaszczyzny', 'Rzutowaniu w perspektywie zbieżnej', 'Rzutowaniu aksonometrycznym']
+        },
+        {
+        q: 'Struktura powierzchni ma wpływ na:',
+        a: 'a',
+        options: ['Zużycie elementów podczas eksploatacji', 'Kolor materiału', 'Wielkość elementu', 'Rodzaj pasowania']
+        }
+        ];
+        [
+        {
+        q: 'Który rodzaj kładu stosuje się, gdy chcemy pokazać szczegółowy fragment obiektu bez konieczności rysowania całego przekroju?',
+        a: 'c',
+        options: ['Kład całkowity', 'Kład przekrojony', 'Kład miejscowy', 'Kład warstwowy']
+        },
+        {
+        q: 'Tolerancja wymiaru określa:',
+        a: 'a',
+        options: ['Dopuszczalne odchylenie od wymiaru nominalnego', 'Dokładność narzędzi pomiarowych', 'Materiał wykonania elementu', 'Metodę obróbki powierzchni']
+        },
+        {
+        q: 'W rysunku technicznym symbol "R" przed wymiarem oznacza:',
+        a: 'b',
+        options: ['Średnicę', 'Promień', 'Długość', 'Szerokość']
+        },
+        {
+        q: 'Która z poniższych linii służy do oznaczania osi symetrii w rysunku technicznym?',
+        a: 'd',
+        options: ['Linia ciągła gruba', 'Linia falista', 'Linia kreskowa cienka', 'Linia punktowo-kreskowa cienka']
+        },
+        {
+        q: 'Pasowanie wciskowe to takie, w którym:',
+        a: 'c',
+        options: ['Występuje luz montażowy', 'Elementy nie mają styku', 'Otwór jest mniejszy od wałka', 'Elementy są połączone za pomocą kleju']
+        },
+        {
+        q: 'Wymiarowanie szeregowe charakteryzuje się tym, że:',
+        a: 'a',
+        options: ['Błędy wymiarowe sumują się wraz z kolejnymi wymiarami', 'Każdy wymiar odnosi się do wspólnej bazy', 'Jest bardziej precyzyjne niż wymiarowanie współrzędnościowe', 'Stosuje się je tylko w rysunkach złożeniowych']
+        },
+        {
+        q: 'Symbol chropowatości powierzchni bez dodatkowych oznaczeń wskazuje, że:',
+        a: 'b',
+        options: ['Powierzchnia ma być szlifowana', 'Dopuszcza się dowolną metodę obróbki', 'Powierzchnia nie może być obrabiana', 'Powierzchnia ma być polerowana']
+        },
+        {
+        q: 'Przekrój łamany stosuje się, gdy:',
+        a: 'd',
+        options: ['Chcemy pokazać dużą liczbę otworów', 'Przedmiot jest bardzo długi', 'Przekrój jest niepotrzebny', 'Linia cięcia zmienia kierunek, aby pokazać różne szczegóły wewnętrzne']
+        },
+        {
+        q: 'Na rysunku, jeśli nie podano jednostek miary, przyjmuje się, że wymiary są w:',
+        a: 'a',
+        options: ['Milimetrach', 'Centymetrach', 'Metrach', 'Inchach']
+        },
+        {
+        q: 'Która metoda rzutowania jest standardowo używana w Europie w rzutach prostokątnych?',
+        a: 'c',
+        options: ['Rzutowanie metodą pierwszego kąta', 'Rzutowanie metodą trzeciego kąta', 'Rzutowanie europejskie (metoda A)', 'Rzutowanie aksonometryczne']
+        },
+        {
+        q: 'Strzałki na liniach odniesienia wskazują:',
+        a: 'b',
+        options: ['Płaszczyznę symetrii', 'Zakres wymiaru lub powierzchni', 'Kierunek obróbki', 'Miejsce cięcia']
+        },
+        {
+        q: 'Który z poniższych elementów NIE jest zazwyczaj pokazywany w przekroju?',
+        a: 'd',
+        options: ['Elementy pełne', 'Ściany wewnętrzne', 'Żebra i wzmocnienia o dużej grubości', 'Śruby, nakrętki i wały']
+        },
+        {
+        q: 'W tolerancjach geometrycznych symbol ⌀ wskazuje, że tolerancja dotyczy:',
+        a: 'a',
+        options: ['Elementu o kształcie okrągłym', 'Płaszczyzny', 'Linii prostej', 'Powierzchni swobodnej']
+        },
+        {
+        q: 'Rzuty aksonometryczne są używane do:',
+        a: 'c',
+        options: ['Precyzyjnego wymiarowania', 'Ukrycia pewnych elementów', 'Przedstawienia trójwymiarowego obiektu na płaszczyźnie', 'Pokazania tylko widoku z przodu']
+        },
+        {
+        q: 'Która z poniższych metod wymiarowania zmniejsza liczbę błędów kumulujących się w wymiarach?',
+        a: 'b',
+        options: ['Wymiarowanie szeregowe', 'Wymiarowanie bazowe', 'Wymiarowanie mieszane', 'Wymiarowanie równoległe']
+        }
+        ];
+        [
+        {
+        q: 'Która z poniższych linii służy do oznaczania niewidocznych krawędzi w rysunku technicznym?',
+        a: 'b',
+        options: ['Linia ciągła cienka', 'Linia kreskowa cienka', 'Linia falista', 'Linia punktowo-kreskowa gruba']
+        },
+        {
+        q: 'Co oznacza symbol Ⓜ na rysunku technicznym w kontekście tolerancji geometrycznych?',
+        a: 'a',
+        options: ['Maksymalny materiał', 'Minimalny materiał', 'Średni materiał', 'Brak informacji']
+        },
+        {
+        q: 'Który rodzaj pasowania charakteryzuje się brakiem luzu i brakiem wcisku, zapewniając dokładne dopasowanie elementów?',
+        a: 'c',
+        options: ['Pasowanie luźne', 'Pasowanie wciskowe', 'Pasowanie mieszane', 'Pasowanie suwliwe']
+        },
+        {
+        q: 'Jaka jest podstawowa różnica między przekrojem a kładem?',
+        a: 'd',
+        options: ['Przekrój pokazuje tylko zewnętrzne krawędzie', 'Kład zawsze jest rysowany w skali 2:1', 'Przekrój dotyczy tylko materiałów przezroczystych', 'Kład jest rzutem wyodrębnionej części obiektu bez otaczającego go materiału']
+        },
+        {
+        q: 'W wymiarowaniu sumarycznym wszystkie wymiary odniesione są do:',
+        a: 'b',
+        options: ['Poprzedniego wymiaru', 'Wspólnej bazy', 'Losowego punktu', 'Największego wymiaru']
+        },
+        {
+        q: 'Symbol ⊥ w tolerancjach geometrycznych oznacza tolerancję:',
+        a: 'a',
+        options: ['Prostopadłości', 'Równoległości', 'Okrągłości', 'Współosiowości']
+        },
+        {
+        q: 'Kiedy stosuje się przekrój półpełny?',
+        a: 'c',
+        options: ['Gdy chcemy pokazać wnętrze całego obiektu', 'Gdy obiekt jest symetryczny tylko w jednej płaszczyźnie', 'Gdy potrzebujemy pokazać połowę obiektu w przekroju, a drugą połowę w widoku', 'Gdy chcemy ukryć pewne elementy']
+        },
+        {
+        q: 'Linia falista na rysunku technicznym oznacza:',
+        a: 'd',
+        options: ['Krawędź widoczną', 'Oś symetrii', 'Krawędź niewidoczną', 'Miejsce przerwania rysunku']
+        },
+        {
+        q: 'Która metoda rzutowania jest standardowo używana w USA i Kanadzie w rzutach prostokątnych?',
+        a: 'b',
+        options: ['Metoda europejska (metoda A)', 'Metoda amerykańska (metoda B)', 'Rzutowanie aksonometryczne', 'Rzutowanie perspektywiczne']
+        },
+        {
+        q: 'Chropowatość powierzchni oznaczona symbolem Ra=1,6 wskazuje na:',
+        a: 'c',
+        options: ['Bardzo szorstką powierzchnię', 'Polerowaną powierzchnię', 'Standardową gładkość po obróbce skrawaniem', 'Lustrzaną gładkość']
+        },
+        {
+        q: 'Który rodzaj linii jest używany do zaznaczania linii pozornych w rysunku technicznym?',
+        a: 'a',
+        options: ['Linia punktowa cienka', 'Linia ciągła gruba', 'Linia kreskowa gruba', 'Linia falista']
+        },
+        {
+        q: 'Pasowanie suwliwe to takie, w którym:',
+        a: 'b',
+        options: ['Elementy są mocno osadzone', 'Występuje minimalny luz umożliwiający swobodne przesuwanie', 'Elementy są połączone na stałe', 'Otwór jest znacznie większy od wałka']
+        },
+        {
+        q: 'Co oznacza wymiar w nawiasie na rysunku technicznym?',
+        a: 'd',
+        options: ['Wymiar podstawowy', 'Wymiar kontrolny', 'Wymiar maksymalny', 'Wymiar niekontrolowany, podany informacyjnie']
+        },
+        {
+        q: 'Linie odniesienia w wymiarowaniu służą do:',
+        a: 'c',
+        options: ['Oznaczania krawędzi widocznych', 'Zaznaczania osi symetrii', 'Łączenia liczby wymiarowej z elementem, którego dotyczy', 'Wskazywania kierunku obróbki']
+        },
+        {
+        q: 'Przy wymiarowaniu średnicy otworu, który symbol jest używany?',
+        a: 'a',
+        options: ['Ø', 'R', '⊥', 'ℓ']
+        }
+        ];
+        [
+        {
+        q: 'Linia punktowo-kreskowa cienka na rysunku technicznym służy do oznaczania:',
+        a: 'c',
+        options: ['Krawędzi widocznych', 'Krawędzi ukrytych', 'Osi symetrii', 'Powierzchni obróbki']
+        },
+        {
+        q: 'Który rodzaj przekroju stosuje się, gdy płaszczyzna cięcia jest równoległa do jednej z głównych płaszczyzn rzutowania?',
+        a: 'a',
+        options: ['Przekrój prosty', 'Przekrój łamany', 'Przekrój stopniowy', 'Przekrój obrócony']
+        },
+        {
+        q: 'Wymiarowanie współrzędnościowe charakteryzuje się tym, że:',
+        a: 'b',
+        options: ['Wymiary są podane wzdłuż jednej osi', 'Wymiary są odniesione do dwóch lub trzech osi współrzędnych', 'Wymiary są podane szeregowo', 'Jest stosowane tylko w obróbce CNC']
+        },
+        {
+        q: 'Co oznacza symbol SΦ na rysunku technicznym?',
+        a: 'd',
+        options: ['Sferyczność powierzchni', 'Średnicę otworu', 'Specjalną tolerancję', 'Przekrój sferyczny']
+        },
+        {
+        q: 'Który z poniższych elementów jest zazwyczaj pomijany w przekroju?',
+        a: 'b',
+        options: ['Elementy wewnętrzne', 'Łożyska toczne', 'Ściany działowe', 'Żebra wzmacniające o małej grubości']
+        },
+        {
+        q: 'Linia ciągła gruba służy do rysowania:',
+        a: 'a',
+        options: ['Krawędzi widocznych', 'Krawędzi niewidocznych', 'Osi symetrii', 'Linii wymiarowych']
+        },
+        {
+        q: 'W tolerancjach geometrycznych symbol || oznacza tolerancję:',
+        a: 'c',
+        options: ['Prostopadłości', 'Okrągłości', 'Równoległości', 'Płaszczyznowości']
+        },
+        {
+        q: 'Przy wymiarowaniu kątów na rysunku technicznym używa się symbolu:',
+        a: 'b',
+        options: ['⊥', '°', 'Ø', '∆']
+        },
+        {
+        q: 'Pasowanie z luzem największym występuje, gdy:',
+        a: 'd',
+        options: ['Wałek ma wymiar większy od otworu', 'Wałek i otwór mają identyczne wymiary', 'Wałek jest mniejszy od otworu w minimalnym stopniu', 'Wałek jest znacznie mniejszy od otworu']
+        },
+        {
+        q: 'Który z poniższych symboli oznacza chropowatość powierzchni, przy której obróbka usuwająca materiał jest niedozwolona?',
+        a: 'b',
+        options: ['', 'Symbol chropowatości z kółkiem na końcu', 'Symbol chropowatości z kreską', 'Symbol chropowatości z trójkątem']
+        },
+        {
+        q: 'W przekroju miejscowym linia odcięcia jest oznaczana linią:',
+        a: 'c',
+        options: ['Ciągłą grubą', 'Kreskową grubą', 'Falistą cienką', 'Punktowo-kreskową grubą']
+        },
+        {
+        q: 'Jaki jest cel stosowania tolerancji geometrycznych na rysunkach technicznych?',
+        a: 'a',
+        options: ['Określenie dopuszczalnych odchyłek kształtu i położenia elementów', 'Skrócenie czasu obróbki', 'Zmniejszenie kosztów produkcji', 'Poprawa estetyki produktu']
+        },
+        {
+        q: 'Która z poniższych metod pasowań jest stosowana, gdy wymagane jest łatwe rozłączanie elementów?',
+        a: 'c',
+        options: ['Pasowanie ciasne', 'Pasowanie wciskowe', 'Pasowanie luźne', 'Pasowanie mieszane']
+        },
+        {
+        q: 'Rzuty prostokątne w metodzie europejskiej (metoda E) są usytuowane w następujący sposób:',
+        a: 'b',
+        options: ['Rzut z góry jest poniżej rzutu z przodu', 'Rzut z góry jest powyżej rzutu z przodu', 'Rzut boczny lewy jest po prawej stronie', 'Rzut z tyłu jest przed rzutem z przodu']
+        },
+        {
+        q: 'Linia kreskowa cienka służy do oznaczania na rysunku technicznym:',
+        a: 'b',
+        options: ['Krawędzi widocznych', 'Krawędzi niewidocznych', 'Linii wymiarowych', 'Osi symetrii']
+        }
+        ];
+        [
+        {
+        q: 'Który rodzaj przekroju stosuje się, gdy płaszczyzna cięcia jest nachylona pod pewnym kątem do głównych osi obiektu?',
+        a: 'b',
+        options: ['Przekrój prosty', 'Przekrój ukośny', 'Przekrój stopniowy', 'Przekrój miejscowy']
+        },
+        {
+        q: 'Linie kreskowe grube na rysunku technicznym służą do oznaczania:',
+        a: 'c',
+        options: ['Krawędzi widocznych', 'Osi symetrii', 'Konturów specjalnego traktowania', 'Linii wymiarowych']
+        },
+        {
+        q: 'W metodzie amerykańskiej rzutowania (metoda B), rzut boczny prawy umieszcza się:',
+        a: 'a',
+        options: ['Po prawej stronie rzutu z przodu', 'Po lewej stronie rzutu z przodu', 'Poniżej rzutu z przodu', 'Powyżej rzutu z przodu']
+        },
+        {
+        q: 'Co oznacza symbol ⌒ (łuk) przed wartością wymiaru?',
+        a: 'b',
+        options: ['Średnicę okręgu', 'Długość łuku', 'Promień sfery', 'Kąt nachylenia']
+        },
+        {
+        q: 'Jeśli na rysunku technicznym zastosowano wymiarowanie mieszane, oznacza to, że:',
+        a: 'd',
+        options: ['Wymiary są podane tylko w calach', 'Stosowane są wyłącznie wymiary szeregowe', 'Wymiary są podane w różnych jednostkach', 'Łączy się wymiarowanie równoległe i szeregowe']
+        },
+        {
+        q: 'Symbol ⌖ w tolerancjach geometrycznych oznacza tolerancję:',
+        a: 'c',
+        options: ['Równoległości', 'Prostopadłości', 'Pozycjonowania', 'Okrągłości']
+        },
+        {
+        q: 'W jaki sposób na rysunku technicznym zaznacza się chropowatość uzyskaną metodami obróbki bezusuwania materiału?',
+        a: 'b',
+        options: ['Symbol chropowatości z trójkątem', 'Symbol chropowatości bez kreski poziomej', 'Symbol chropowatości z kółkiem', 'Symbol chropowatości z dwoma trójkątami']
+        },
+        {
+        q: 'Który z poniższych rodzajów pasowań zapewnia pasowanie mieszane, gdzie może wystąpić luz lub wcisk?',
+        a: 'd',
+        options: ['Pasowanie luźne', 'Pasowanie ciasne', 'Pasowanie suwliwe', 'Pasowanie przejściowe']
+        },
+        {
+        q: 'Jak nazywa się metoda tworzenia przekroju, w której płaszczyzna cięcia przesuwa się wzdłuż obiektu, pokazując kolejne warstwy?',
+        a: 'a',
+        options: ['Przekrój rozwinięty', 'Przekrój miejscowy', 'Przekrój stopniowy', 'Przekrój obracany']
+        },
+        {
+        q: 'Linia ciągła cienka zygzakowata stosowana jest do oznaczania:',
+        a: 'c',
+        options: ['Krawędzi widocznych', 'Linii wymiarowych', 'Miejsca przerwania elementu', 'Osi symetrii']
+        },
+        {
+        q: 'W rysunku technicznym, jeżeli dwa otwory mają być współosiowe, stosuje się tolerancję:',
+        a: 'b',
+        options: ['Prostopadłości', 'Współosiowości', 'Równoległości', 'Pozycjonowania']
+        },
+        {
+        q: 'Co oznacza, gdy na rysunku technicznym obok wymiaru znajduje się symbol ±0.1?',
+        a: 'a',
+        options: ['Dopuszczalną odchyłkę wymiaru o 0.1 jednostki', 'Wymiar niekontrolowany', 'Wymiar nominalny bez tolerancji', 'Wymiar musi być dokładnie taki bez odchyleń']
+        },
+        {
+        q: 'Jak nazywa się przekrój, w którym zastosowano więcej niż jedną płaszczyznę cięcia, zmieniającą kierunek w celu ukazania różnych elementów wewnętrznych?',
+        a: 'c',
+        options: ['Przekrój ukośny', 'Przekrój miejscowy', 'Przekrój stopniowy', 'Przekrój półpełny']
+        },
+        {
+        q: 'W jakim celu stosuje się na rysunkach technicznych tzw. wskazówki wymiarowe (linie z strzałkami)?',
+        a: 'd',
+        options: ['Do oznaczania osi symetrii', 'Do zaznaczania linii cięcia', 'Do wskazywania powierzchni obrabianych', 'Do połączenia wymiaru z elementem, którego dotyczy']
+        },
+        {
+        q: 'Symbol \'s\' przed wartością wymiaru oznacza, że chodzi o:',
+        a: 'b',
+        options: ['Długość', 'Grubość materiału (ścianki)', 'Promień', 'Średnicę']
+        }
+        ];
+        [
+        {
+        q: 'Który rodzaj linii na rysunku technicznym jest używany do zaznaczania linii zarysów krawędzi obróbki?',
+        a: 'd',
+        options: ['Linia ciągła gruba', 'Linia kreskowa cienka', 'Linia punktowa cienka', 'Linia podwójnie kreskowa cienka']
+        },
+        {
+        q: 'Przy wymiarowaniu stożka na rysunku technicznym, oprócz średnicy podstawy należy podać:',
+        a: 'b',
+        options: ['Promień wierzchołka', 'Kąt rozwarcia stożka', 'Wysokość stożka', 'Objętość stożka']
+        },
+        {
+        q: 'Co oznacza symbol "T" w polu tolerancji kształtu na rysunku technicznym?',
+        a: 'a',
+        options: ['Tolerancję położenia', 'Tolerancję płaskości', 'Tolerancję cylindryczności', 'Tolerancję równoległości']
+        },
+        {
+        q: 'W przekrojach, powierzchnie przecięte oznacza się za pomocą:',
+        a: 'c',
+        options: ['Barwienia powierzchni', 'Symboli materiałów', 'Kresek ukośnych (szrafowania)', 'Linii falistych']
+        },
+        {
+        q: 'Który rodzaj pasowania jest stosowany, gdy wymagane jest ścisłe unieruchomienie elementów bez możliwości ich rozłączania?',
+        a: 'b',
+        options: ['Pasowanie luźne', 'Pasowanie ciasne (wciskowe)', 'Pasowanie suwliwe', 'Pasowanie przejściowe']
+        },
+        {
+        q: 'Linie pomocnicze w rysunku technicznym są stosowane do:',
+        a: 'a',
+        options: ['Przedłużenia konturów dla wymiarowania', 'Oznaczania krawędzi ukrytych', 'Zaznaczania połówek wymiarów', 'Tworzenia linii cięcia']
+        },
+        {
+        q: 'Symbol "SR" na rysunku technicznym oznacza:',
+        a: 'b',
+        options: ['Średnicę zewnętrzną', 'Promień sferyczny', 'Średnicę wewnętrzną', 'Średni promień (średnicę)']
+        },
+        {
+        q: 'Kiedy stosuje się przekrój obrócony na rysunku technicznym?',
+        a: 'c',
+        options: ['Gdy chcemy pokazać wnętrze obiektu', 'Gdy potrzebujemy przedstawić obiekt w innej skali', 'Gdy przekrój jest narysowany bezpośrednio na widoku, obrócony względem linii cięcia', 'Gdy chcemy ukryć pewne elementy']
+        },
+        {
+        q: 'Linia ciągła cienka jest stosowana do rysowania:',
+        a: 'b',
+        options: ['Konturów widocznych', 'Linii wymiarowych i pomocniczych', 'Krawędzi ukrytych', 'Osi symetrii']
+        },
+        {
+        q: 'Co oznacza symbol "E" w oznaczeniach tolerancji wałków?',
+        a: 'a',
+        options: ['Położenie pola tolerancji względem zera wymiarowego', 'Dokładność wykonania', 'Materiał wałka', 'Stopień chropowatości powierzchni']
+        },
+        {
+        q: 'Jeżeli na rysunku technicznym nie podano inaczej, przyjmuje się, że krawędzie są:',
+        a: 'c',
+        options: ['Zaokrąglone', 'Sfazowane pod kątem 45°', 'Ostre', 'Z fazą 1 mm']
+        },
+        {
+        q: 'Kąt nachylenia kresek szrafowania w przekrojach wynosi:',
+        a: 'b',
+        options: ['30°', '45°', '60°', '90°']
+        },
+        {
+        q: 'Pasowanie H7/h6 oznacza, że:',
+        a: 'd',
+        options: ['Wałek ma większy wymiar niż otwór', 'Otwór jest mniejszy od wałka', 'Między wałkiem a otworem występuje duży luz', 'Otwór ma tolerancję H7, a wałek h6, tworząc pasowanie mieszane']
+        },
+        {
+        q: 'Co oznacza symbol ∅ przed wymiarem na rysunku technicznym?',
+        a: 'a',
+        options: ['Średnicę elementu', 'Promień elementu', 'Obwód elementu', 'Pole przekroju elementu']
+        },
+        {
+        q: 'W jakim celu stosuje się oznaczenie chropowatości powierzchni na rysunkach technicznych?',
+        a: 'c',
+        options: ['Do określenia koloru powierzchni', 'Do wskazania materiału', 'Do określenia wymaganej jakości obróbki powierzchni', 'Do oznaczenia twardości powierzchni']
+        }
+        ];
+        [
+        {
+        q: 'W tolerancjach geometrycznych symbol "直" oznacza tolerancję:',
+        a: 'c',
+        options: ['Płaszczyznowości', 'Okrągłości', 'Prostości', 'Cylindryczności']
+        },
+        {
+        q: 'Linia punktowo-kreskowa gruba na rysunku technicznym służy do oznaczania:',
+        a: 'b',
+        options: ['Krawędzi widocznych', 'Płaszczyzn przekroju', 'Osi symetrii', 'Linii wymiarowych']
+        },
+        {
+        q: 'Co jest celem stosowania pasowań przejściowych?',
+        a: 'd',
+        options: ['Zapewnienie dużego luzu', 'Uzyskanie połączenia wciskowego', 'Ułatwienie demontażu', 'Uzyskanie połączenia, w którym może wystąpić zarówno luz, jak i wcisk']
+        },
+        {
+        q: 'Przy wymiarowaniu gwintu na rysunku technicznym podaje się:',
+        a: 'a',
+        options: ['Średnicę nominalną i skok gwintu', 'Głębokość otworu', 'Kąt nachylenia gwintu', 'Rozmiar klucza']
+        },
+        {
+        q: 'Jak oznacza się powierzchnie obrobione w sposób specjalny (np. szlifowane) na rysunku technicznym?',
+        a: 'c',
+        options: ['Symbol chropowatości bez dodatkowych oznaczeń', 'Symbol chropowatości z kółkiem', 'Symbol chropowatości z wpisaną wartością Ra', 'Brak symbolu']
+        },
+        {
+        q: 'Który rodzaj przekroju stosuje się, gdy po przecięciu obiektu płaszczyznę cięcia obraca się o pewien kąt, aby wyróżnić określone elementy?',
+        a: 'b',
+        options: ['Przekrój prosty', 'Przekrój obrócony', 'Przekrój miejscowy', 'Przekrój stopniowy']
+        },
+        {
+        q: 'Linia ciągła gruba zygzakowata na rysunku technicznym oznacza:',
+        a: 'd',
+        options: ['Krawędzie widoczne', 'Krawędzie niewidoczne', 'Oś symetrii', 'Miejsce przerwania (skrócenia) elementu']
+        },
+        {
+        q: 'Co określa tolerancja płaskości w tolerancjach geometrycznych?',
+        a: 'a',
+        options: ['Maksymalne odchylenie powierzchni od ideału płaszczyzny', 'Równoległość dwóch powierzchni', 'Prostopadłość między elementami', 'Odchyłkę kształtu otworu']
+        },
+        {
+        q: 'Przy wymiarowaniu otworów nieprzelotowych podaje się:',
+        a: 'b',
+        options: ['Tylko średnicę otworu', 'Średnicę i głębokość otworu', 'Głębokość otworu i kąt stożka', 'Tylko głębokość otworu']
+        },
+        {
+        q: 'Co oznacza symbol "⊕" przed wartością wymiaru?',
+        a: 'c',
+        options: ['Promień elementu', 'Kąt nachylenia', 'Okrągłość elementu', 'Średnicę sfery']
+        },
+        {
+        q: 'Jakie pasowanie należy zastosować, jeśli wymagane jest łatwe połączenie elementów z niewielkim luzem?',
+        a: 'c',
+        options: ['Pasowanie ciasne', 'Pasowanie przejściowe', 'Pasowanie luźne', 'Pasowanie wpustowe']
+        },
+        {
+        q: 'Gdy na rysunku technicznym obok symbolu chropowatości podana jest wartość Ra, oznacza to:',
+        a: 'b',
+        options: ['Że powierzchnia jest polerowana', 'Wymaganą wartość średniej arytmetycznej chropowatości', 'Że materiał jest szorstki', 'Że powierzchnia nie jest obrabiana']
+        },
+        {
+        q: 'Linia podwójnie kreskowa cienka służy do oznaczania:',
+        a: 'd',
+        options: ['Krawędzi ukrytych', 'Konturów widocznych', 'Linii wymiarowych', 'Powierzchni poddanych obróbce cieplnej lub chemicznej']
+        },
+        {
+        q: 'Przekrój stopniowy jest stosowany, gdy:',
+        a: 'c',
+        options: ['Płaszczyzna cięcia zmienia kąt nachylenia', 'Chcemy pokazać tylko miejscowe cechy obiektu', 'Linia cięcia składa się z kilku odcinków równoległych przesuniętych względem siebie', 'Płaszczyzna cięcia jest zakrzywiona']
+        },
+        {
+        q: 'Co oznacza tolerancja kształtu w tolerancjach geometrycznych?',
+        a: 'b',
+        options: ['Odchyłki wymiarowe', 'Dopuszczalne odchylenia od idealnego kształtu', 'Położenie elementu względem innego', 'Chropowatość powierzchni']
+        }
+        ];
+        [
+        {
+        q: 'Co oznacza symbol "M" przed wartością średnicy na rysunku technicznym?',
+        a: 'b',
+        options: ['Średnicę wałka', 'Gwint metryczny', 'Średnicę otworu', 'Promień okręgu']
+        },
+        {
+        q: 'Linia falista gruba na rysunku technicznym służy do oznaczania:',
+        a: 'c',
+        options: ['Krawędzi niewidocznych', 'Osi symetrii', 'Miejsca przerwania długiego elementu', 'Linii wymiarowych']
+        },
+        {
+        q: 'Co określa tolerancja równoległości w tolerancjach geometrycznych?',
+        a: 'd',
+        options: ['Prostopadłość dwóch powierzchni', 'Odchylenie osi od położenia nominalnego', 'Okrągłość elementu', 'Maksymalne odchylenie powierzchni od idealnej równoległości do innej powierzchni']
+        },
+        {
+        q: 'Przy wymiarowaniu stożka często podaje się kąt nachylenia powierzchni bocznej. Jakim symbolem oznaczany jest ten kąt?',
+        a: 'a',
+        options: ['α (alfa)', 'β (beta)', 'γ (gamma)', 'θ (theta)']
+        },
+        {
+        q: 'Linie pomocnicze wymiarowe powinny być rysowane jako:',
+        a: 'b',
+        options: ['Linie ciągłe grube', 'Linie ciągłe cienkie', 'Linie kreskowe cienkie', 'Linie punktowo-kreskowe']
+        },
+        {
+        q: 'Jeżeli na rysunku technicznym widnieje oznaczenie "3×⌀10", co to oznacza?',
+        a: 'c',
+        options: ['Otwór o średnicy 3 mm i głębokości 10 mm', 'Trzy otwory o głębokości 10 mm', 'Trzy otwory o średnicy 10 mm', 'Otwór o średnicy 10 mm powtórzony trzy razy']
+        },
+        {
+        q: 'Czym jest baza wymiarowa w rysunku technicznym?',
+        a: 'a',
+        options: ['Punkt, linia lub powierzchnia odniesienia dla wymiarowania', 'Największym wymiarem elementu', 'Środkiem ciężkości elementu', 'Dowolnym punktem na obiekcie']
+        },
+        {
+        q: 'Co oznacza symbol "⌒" nad wymiarem kątowym?',
+        a: 'd',
+        options: ['Kąt prosty', 'Promień', 'Średnicę', 'Łuk okręgu (kąt łukowy)']
+        },
+        {
+        q: 'W tolerancjach geometrycznych symbol "⌀" przed wartością tolerancji oznacza, że:',
+        a: 'b',
+        options: ['Tolerancja dotyczy promienia', 'Tolerancja dotyczy strefy cylindrycznej', 'Tolerancja dotyczy średnicy nominalnej', 'Tolerancja jest podwójna']
+        },
+        {
+        q: 'Linia ciągła cienka zygzakowata jest używana do:',
+        a: 'c',
+        options: ['Oznaczania osi symetrii', 'Krawędzi niewidocznych', 'Przerwania elementu na rysunku', 'Linii wymiarowych']
+        },
+        {
+        q: 'Jeśli na rysunku technicznym podano tolerancję otworu jako H8, to oznacza to, że:',
+        a: 'a',
+        options: ['Otwór ma tolerancję H8', 'Wałek ma tolerancję H8', 'Otwór ma tolerancję h8', 'Wałek ma tolerancję h8']
+        },
+        {
+        q: 'Przy rysowaniu przekrojów, które z poniższych elementów NIE powinny być szrafowane?',
+        a: 'd',
+        options: ['Części przecięte', 'Elementy stałe', 'Materiały jednorodne', 'Elementy standardowe, takie jak śruby i nakrętki']
+        },
+        {
+        q: 'Co oznacza symbol "⊥" w tolerancjach geometrycznych?',
+        a: 'b',
+        options: ['Równoległość', 'Prostopadłość', 'Pozycję', 'Okrągłość']
+        },
+        {
+        q: 'Linia kropkowa cienka jest stosowana do oznaczania:',
+        a: 'c',
+        options: ['Krawędzi widocznych', 'Linii wymiarowych', 'Położenia elementów ruchomych lub alternatywnych', 'Osi symetrii']
+        },
+        {
+        q: 'W rysunku technicznym, jeśli podano wartość chropowatości powierzchni Ra 0,8, to oznacza to:',
+        a: 'a',
+        options: ['Powierzchnia jest bardzo gładka', 'Powierzchnia jest szorstka', 'Chropowatość nie ma znaczenia', 'Powierzchnia jest pokryta powłoką ochronną']
+        }
+        ];
+        [
+        {
+        q: 'Który symbol na rysunku technicznym oznacza powierzchnię obrobioną bez usuwania materiału?',
+        a: 'c',
+        options: ['Symbol z jedną kreską', 'Symbol z dwoma kreskami', 'Symbol bez kreski (tylko trójkąt)', 'Symbol z kółkiem']
+        },
+        {
+        q: 'Przy wymiarowaniu otworów gwintowanych podaje się:',
+        a: 'b',
+        options: ['Średnicę wiertła', 'Średnicę nominalną gwintu i jego skok', 'Głębokość otworu', 'Rodzaj użytego narzędzia']
+        },
+        {
+        q: 'Linia punktowo-kreskowa gruba jest używana do oznaczania:',
+        a: 'd',
+        options: ['Osi symetrii', 'Krawędzi niewidocznych', 'Linii wymiarowych', 'Płaszczyzn i śladów cięcia']
+        },
+        {
+        q: 'Co oznacza tolerancja cylindryczności w tolerancjach kształtu?',
+        a: 'b',
+        options: ['Odchyłkę powierzchni od ideału płaszczyzny', 'Maksymalne odchylenie powierzchni cylindra od ideału', 'Odchyłkę osi od położenia nominalnego', 'Odchyłkę kształtu gwintu']
+        },
+        {
+        q: 'Pasowanie H7/g6 oznacza, że pasowanie jest:',
+        a: 'a',
+        options: ['Pasowaniem luźnym z luzem niewielkim', 'Pasowaniem przejściowym', 'Pasowaniem ciasnym z niewielkim wciskiem', 'Pasowaniem wciskowym']
+        },
+        {
+        q: 'Przy wymiarowaniu promienia używa się symbolu:',
+        a: 'c',
+        options: ['Ø', 'S', 'R', 'SR']
+        },
+        {
+        q: 'Linie kreskowe cienkie są używane do oznaczania:',
+        a: 'b',
+        options: ['Krawędzi widocznych', 'Krawędzi niewidocznych', 'Linii wymiarowych', 'Osi symetrii']
+        },
+        {
+        q: 'Czym jest rzut aksonometryczny izometryczny?',
+        a: 'c',
+        options: ['Rzutem prostokątnym', 'Rzutem perspektywicznym', 'Rzutem, w którym osie są nachylone pod kątem 120°', 'Rzutem, w którym jedna oś jest wydłużona']
+        },
+        {
+        q: 'Który rodzaj przekroju stosuje się, gdy płaszczyzna cięcia jest zakrzywiona?',
+        a: 'd',
+        options: ['Przekrój prosty', 'Przekrój stopniowy', 'Przekrój obrócony', 'Przekrój rozwinięty']
+        },
+        {
+        q: 'Co oznacza symbol "e" w oznaczeniach tolerancji wałków?',
+        a: 'b',
+        options: ['Tolerancję bardzo ciasną', 'Przesunięcie pola tolerancji wałka w stosunku do zera wymiarowego w dół', 'Dokładność wymiaru', 'Materiał wałka']
+        },
+        {
+        q: 'Jakie informacje zawiera podstawowy symbol chropowatości bez dodatkowych oznaczeń?',
+        a: 'a',
+        options: ['Że powierzchnia jest poddana obróbce z usuwaniem materiału', 'Że powierzchnia nie jest obrabiana', 'Że powierzchnia jest obrobiona metodami plastycznymi', 'Że powierzchnia jest szlifowana']
+        },
+        {
+        q: 'W rysunku technicznym jednostką podstawową jest:',
+        a: 'c',
+        options: ['Centymetr', 'Cal', 'Milimetr', 'Metr']
+        },
+        {
+        q: 'Która z metod wymiarowania jest najbardziej dokładna pod względem unikania akumulacji błędów?',
+        a: 'b',
+        options: ['Wymiarowanie szeregowe', 'Wymiarowanie bazowe', 'Wymiarowanie mieszane', 'Wymiarowanie równoległe']
+        },
+        {
+        q: 'Symbol "S⊥" w tolerancjach geometrycznych oznacza tolerancję:',
+        a: 'c',
+        options: ['Równoległości powierzchni sferycznej', 'Prostopadłości sfery', 'Prostopadłości powierzchni walcowej lub sferycznej', 'Płaskości powierzchni']
+        },
+        {
+        q: 'Co oznacza, gdy wymiar na rysunku technicznym jest podkreślony falistą linią?',
+        a: 'd',
+        options: ['Wymiar specjalny', 'Wymiar kontrolowany', 'Wymiar maksymalny', 'Wymiar przybliżony']
+        }
+        ];
+
+
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function pickRandomQuestions() {
+            const shuffledQuestions = [...baseQuestions];
+            shuffle(shuffledQuestions);
+            return shuffledQuestions.slice(0, totalQuestions);
+        }
+
+        function renderQuiz() {
+            selectedQuestions = pickRandomQuestions();
+
+            const quizForm = document.getElementById('quizForm');
+            selectedQuestions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('question');
+                questionDiv.id = `question${index}`;
+
+                const questionText = document.createElement('h3');
+                questionText.textContent = `${index + 1}. ${question.q}`;
+                questionDiv.appendChild(questionText);
+
+                const options = [...question.options];
+                shuffle(options);
+
+                options.forEach((option) => {
+                    const label = document.createElement('label');
+                    label.innerHTML = `${option}`;
+                    label.dataset.answer = option;
+                    label.onclick = () => selectAnswer(index, option, label);
+                    questionDiv.appendChild(label);
+                });
+
+                const feedback = document.createElement('div');
+                feedback.id = `feedback${index}`;
+                feedback.className = 'result';
+                questionDiv.appendChild(feedback);
+
+                const checkButton = document.createElement('button');
+                checkButton.textContent = 'Sprawdź';
+                checkButton.type = 'button';
+                checkButton.onclick = () => checkAnswer(index, question.a);
+                questionDiv.appendChild(checkButton);
+
+                quizForm.appendChild(questionDiv);
+            });
+
+            showQuestion(0);
+        }
+
+        function selectAnswer(index, selectedAnswer, label) {
+            document.querySelectorAll(`#question${index} label`).forEach(el => el.style.backgroundColor = "#444");
+            label.style.backgroundColor = "#666";
+        }
+
+        function showQuestion(index) {
+            if (index < 0 || index >= selectedQuestions.length) return;
+
+            document.querySelectorAll('.question').forEach(q => q.style.display = 'none');
+            document.getElementById(`question${index}`).style.display = 'block';
+            currentQuestion = index;
+
+            document.getElementById('backButton').style.display = currentQuestion === 0 ? 'none' : 'inline';
+            document.getElementById('nextButton').style.display = currentQuestion === selectedQuestions.length - 1 ? 'none' : 'inline';
+            document.getElementById('submitButton').style.display = currentQuestion === selectedQuestions.length - 1 ? 'inline' : 'none';
+        }
+
+        function checkAnswer(index, correctAnswer) {
+            const feedbackElement = document.getElementById(`feedback${index}`);
+            const correctAnswerText = selectedQuestions[index].options[correctAnswer.charCodeAt(0) - 97];
+            const selectedLabel = document.querySelector(`#question${index} label[style*="background-color: rgb(102, 102, 102)"]`);
+
+            if (selectedLabel && selectedLabel.dataset.answer === correctAnswerText) {
+                feedbackElement.textContent = "Dobrze!";
+                feedbackElement.className = "result";
+                score++;
+            } else {
+                feedbackElement.textContent = `Nieprawidłowa odpowiedź! Poprawna to: ${correctAnswerText}`;
+                feedbackElement.className = "result incorrect";
+            }
+        }
+
+        function submitQuiz() {
+            const resultText = score >= (totalQuestions / 2) ? `Gratulacje! Zdałeś test z wynikiem: ${score}/${totalQuestions}.` : `Nie udało ci się uzyskać 50%. ${score}/${totalQuestions}.`;
+
+            document.getElementById("finalResult").textContent = resultText;
+        }
+
+        window.onload = function() {
+            renderQuiz();
+        };
+    </script>
+</body>
+</html>
