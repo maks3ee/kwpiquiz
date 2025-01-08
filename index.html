@@ -21,7 +21,7 @@
 
     <script>
         let score = 0;
-        const totalQuestions = 10;
+        const totalQuestions = 30;
         let currentQuestion = 0;
         let selectedQuestions = [];
 
@@ -2951,7 +2951,7 @@
         }
 
         function submitQuiz() {
-            const resultText = score >= (totalQuestions / 2) ? `Gratulacje! Zdałeś test z wynikiem: ${score}/${totalQuestions}.` : `Nie udało ci się uzyskać 50%. ${score}/${totalQuestions}.`;
+            const resultText = score >= (totalQuestions / 2) ? `Gratulacje! Ukończyłeś test z wynikiem: ${score}/${totalQuestions}.` : `Nie udało ci się uzyskać 50%. ${score}/${totalQuestions}.`;
 
             document.getElementById("finalResult").textContent = resultText;
         }
