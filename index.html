@@ -12,10 +12,11 @@
     <form id="quizForm"></form>
 
     <div class="nav-buttons">
-        <button type="button" id="backButton" style="display:none;" onclick="showQuestion(currentQuestion - 1)">Powróć</button>
-        <button type="button" id="nextButton" style="display:none;" onclick="showQuestion(currentQuestion + 1)">Kolejne zadanie</button>
-        <button type="button" id="submitButton" style="display:none;" onclick="submitQuiz()">Zatwierdź odpowiedzi</button>
-    </div>
+    <button type="button" id="backButton" style="display:none;" onclick="showQuestion(currentQuestion - 1)">Powróć</button>
+    <button type="button" id="nextButton" style="display:none;" onclick="showQuestion(currentQuestion + 1)">Kolejne zadanie</button>
+    <button type="button" id="submitButton" style="display:none;" onclick="submitQuiz()">Zatwierdź odpowiedzi</button>
+    <button type="button" id="rerollButton" onclick="rerollQuestions()">nowe pytania</button>
+</div>
 
     <div class="final-result" id="finalResult"></div>
 
@@ -2863,7 +2864,19 @@
         ]
         }
         ];
-
+document.getElementById('rerollButton').addEventListener('click', rerollQuestions);
+        
+        function rerollQuestions() {
+    selectedQuestions = [];
+    while (selectedQuestions.length < totalQuestions) {
+        const randomIndex = Math.floor(Math.random() * baseQuestions.length);
+        if (!selectedQuestions.includes(baseQuestions[randomIndex])) {
+            selectedQuestions.push(baseQuestions[randomIndex]);
+        }
+    }
+    currentQuestion = 0;
+    showQuestion(currentQuestion);
+}
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
